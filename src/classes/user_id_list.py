@@ -1,11 +1,13 @@
 
 import json
+from time import time
 
 class UserIdList:
     """A list (dict) of user-id's sorted after the chat-id"""
-    def __init__(self, save_path_: str = ""):
+    def __init__(self, save_path_: str = "", time_interval_ = 30):
         self.__id_list = {}
         self.__save_path = "data/id_list.json"
+        self.__time_interval = time_interval_
 
         if save_path_:
             self.__save_path = save_path_        
@@ -60,3 +62,18 @@ class UserIdList:
                 self.__id_list.pop(chat_id, None)
         
         self.save()
+    
+    def timeUp(self, custom_interval = None):
+        timeup_list = []
+        
+        timestamp = int(time())
+
+        interval = custom_interval if custom_interval else self.__time_interval
+
+        for chat in self.__id_list:
+            for user in self.__id_list[chat]:
+                if timestamp - self.__id_list[chat][user] >= interval:
+                    timeup_list.append([chat, user])
+        
+        return timeup_list
+
