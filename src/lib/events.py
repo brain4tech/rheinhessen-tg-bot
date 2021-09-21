@@ -8,3 +8,8 @@
 # if user presses button edit message to <insert here> and remove internal timer
 # if other user clicks on button: callbackquery with information
 # if user does not click on button and timer is 0 kick user from group
+
+
+def onNewChatMember():
+    class NewChatMemberAction():
+        
