@@ -1,0 +1,6 @@
+
+# ignore __pycache__ directories
+**/__pycache__
+
+# ignore credentials
+bot_credentials
