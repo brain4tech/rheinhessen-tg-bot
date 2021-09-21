@@ -7,3 +7,5 @@ bot_credentials
 
 # ignore sensitive data
 data/id_list.json
+
+dumping.txt
