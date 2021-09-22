@@ -9,6 +9,12 @@ from telegram_bot import TelegramBot, BotCommand, BotCommandList, InlineButton, 
 # from lib.events import onNewChatMember
 from classes.user_id_list import UserIdList
 
+DEBUG = True
+
+def debug_print(message):
+    if DEBUG:
+        print (message)
+
 if __name__ == '__main__':
     setup.enable()
 
@@ -20,23 +26,25 @@ if __name__ == '__main__':
 
     
     def newChatMember(chat, user, time, userlist):
-        print (f"New chat member {user} in {chat} at {time}")
+        debug_print (f"New chat member {user} in {chat} at {time}")
         # TODO: restrict user
         userlist.register(chat, user, time)
         welcome_message = f"Willkommen im Chat {user}!. Bitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
-        button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", "join_button", f"https://t.me/johannes_group_mod_bot?start={chat}")]).toBotDict()
+        button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", "join_button", f"https://t.me/rheinhessen_test_group_bot?start={chat}")]).toBotDict()
         bot.sendMessage(chat, welcome_message, button_dict)
 
     bot.deleteBotCommands()
-    bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion")]))
+    bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]")]))
 
     userlist = UserIdList(time_interval_=10)
+
+    print ("--- Started Rheinhessen TelegramBot ---")
 
     while True:
 
         for user in userlist.timeUp():
-            print (f"kicked user {user[1]} in {user[0]}")
-            print (bot.kickChatMember(user[0], user[1]))
+            response_ban = bot.kickChatMember(user[0], user[1])
+            debug_print (f"kicked user {user[1]} in {user[0]}: {response_ban}")
             userlist.unregister(user[0], user[1])
             # TODO: delete welcome message in group
 
@@ -61,8 +69,6 @@ if __name__ == '__main__':
                     userlist.unregister (payload, update.message.sender.id)
                     # TODO: update user permissions
                     # TODO: update previous message to other message
-                
-                continue
 
             if "/sim" in command:
                 # simulate different states of script
@@ -83,18 +89,15 @@ if __name__ == '__main__':
                     # simlate unregistering of user
                     userlist.unregister(update.message.chat.id, update.message.sender.id)
 
-                continue
+            continue
 
         # --- real life action ---
 
         if update.isMessage():
-            print (f"{update.message.text} from {update.message.sender.id} in {update.message.chat.id}")
-            # print (f"{update.message.text} from {update.message.sender.id} in {update.message.chat.id}:\n{update.content}")
+            debug_print (f"{update.message.text} from {update.message.sender.id} in {update.message.chat.id}")
             pass
 
         if update.isnewChatMember():
-            # print("new chat member")
-            # userlist.register(update.message.chat.id, update.message.sender.id, update.message.date)
             for new_member in update.message.new_chat_members:
                 newChatMember (update.message.chat.id, new_member.id, update.message.date, userlist)
         
@@ -105,7 +108,7 @@ if __name__ == '__main__':
             # TODO: see above
             pass
 
-        # check frequently to not overuse capacitites
+        # check frequently to not overuse capacities
         sleep(1)
 
     setup.disable()
