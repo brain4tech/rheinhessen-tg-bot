@@ -48,7 +48,8 @@ if __name__ == '__main__':
             userlist.unregister(user[0], user[1])
             # TODO: delete welcome message in group
 
-        update = bot.poll()
+        update, response = bot.poll()
+        debug_print(response)
         if not update:
             sleep(1)
             continue
