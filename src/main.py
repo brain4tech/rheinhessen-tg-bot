@@ -21,6 +21,7 @@ if __name__ == '__main__':
     
     def newChatMember(chat, user, time, userlist):
         print (f"New chat member {user} in {chat} at {time}")
+        # TODO: restrict user
         userlist.register(chat, user, time)
         welcome_message = f"Willkommen im Chat {user}!. Bitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
         button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", "join_button", f"https://t.me/johannes_group_mod_bot?start={chat}")]).toBotDict()
@@ -57,6 +58,7 @@ if __name__ == '__main__':
                 if payload in userlist:
                     bot.sendMessage(update.message.chat.id, "Willkommen in der Gang!")
                     userlist.unregister (payload, update.message.sender.id)
+                    # TODO: update user permissions
                 
                 continue
 
@@ -65,7 +67,6 @@ if __name__ == '__main__':
 
                 if "join" in command_params:
                     # simulate first join in group
-                    # register user-id
 
                     user_param = command_params.replace("join", "")
                     user_param = user_param.replace(" ", "")
@@ -95,6 +96,13 @@ if __name__ == '__main__':
             for new_member in update.message.new_chat_members:
                 newChatMember (update.message.chat.id, new_member.id, update.message.date, userlist)
         
+        # security issue: check if correct user has pressed correct button for his message
+        # temporarily store user with connected message-id and check with:
+
+        if update.isCallback():
+            # TODO: see above
+            pass
+
         # check frequently to not overuse capacitites
         sleep(1)
 
