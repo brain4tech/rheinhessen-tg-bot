@@ -60,7 +60,10 @@ if __name__ == '__main__':
                     bot.sendMessage(update.message.chat.id, "Willkommen in der Gang!")
                     userlist.unregister (payload, update.message.sender.id)
                     # TODO: update user permissions
+<<<<<<< HEAD
                     # TODO: update previous message to other message
+=======
+>>>>>>> 5762b410d302ad58bb10f2d0ac86d52f1051bc7f
                 
                 continue
 
