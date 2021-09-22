@@ -21,6 +21,9 @@ class UserIdList:
     def __call__(self):
         return self.__id_list
     
+    def __contains__(self, key):
+        return key in self.__id_list
+    
     def __str__(self):
         return str(self.__id_list)
     
