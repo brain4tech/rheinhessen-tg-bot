@@ -4,8 +4,9 @@
 
 # --- IMPORT STATEMENTS ---
 # packages
-from time import sleep
+import os
 from telegram_bot import TelegramBot, BotCommand, BotCommandList, InlineButton, ButtonList
+from time import sleep
 
 # libaries
 import path_setup as setup
@@ -24,21 +25,38 @@ def newChatMember(chat_id, user_id, user_name, time, userlist):
     debug_print (f"New chat member {user_id} in {chat_id} at {time}", DEBUG)
     # TODO: restrict user
     userlist.register(chat_id, user_id, time)
-    welcome_message = f"Willkommen im Chat {user_name}!. Bitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
+    welcome_message = f"Willkommen im Chat {user_name}! Bitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
     button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", "join_button", f"https://t.me/rheinhessen_test_group_bot?start={chat_id}")]).toBotDict()
     bot.sendMessage(chat_id, welcome_message, button_dict)
+
+def createNeededFileStructure():
+    # credentials
+    os.makedirs("bot_credentials", exist_ok = True)
+    if not os.path.exists("bot_credentials/token.txt"):
+        open("bot_credentials/token.txt", "w+").close()
+    
+    if not os.path.exists("bot_credentials/chat_id.txt"):
+        open("bot_credentials/chat_id.txt", "w+").close()
+    
+    # data
+    os.makedirs("data", exist_ok = True)
 
 # --- START OF SCRIPT ---
 
 # TODO: create paths and files if not existent
 
 setup.enable()
+createNeededFileStructure()
 
 with open('bot_credentials/chat_id.txt', 'r') as file:
     chat_id = file.read()
 
 with open('bot_credentials/token.txt', 'r') as file:
-    bot = TelegramBot(file.read(), return_on_update_only=False)
+    token = file.read()
+    if token:
+        bot = TelegramBot(file.read(), return_on_update_only=False)
+    else:
+        raise ValueError("No token found in file")
 
 bot.deleteBotCommands()
 bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]")]))
