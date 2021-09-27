@@ -12,4 +12,4 @@
 
 def onNewChatMember():
     class NewChatMemberAction():
-        
+        pass
