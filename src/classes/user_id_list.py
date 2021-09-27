@@ -7,12 +7,8 @@ class UserIdList:
     """A datastructure (dict) of user-id specific data structured with the chat-id"""
     def __init__(self, file_name_):
         self._id_list = {}
-        # TODO: create paths if not existent
-
-        os.makedirs("data", exist_ok=True)
         self._file_name = os.path.join("data", file_name_)
-        print (self._file_name)        
-
+        
         try:
             with open(self._file_name, "r") as file:
                 self._id_list = json.loads(file.read())
