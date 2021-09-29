@@ -107,7 +107,7 @@ while True:
             try:
                 
                 if payload:
-                    print ("payload exists:", payload_data)
+                    # debug_print (f"payload exists: {payload_data}", DEBUG)
                     # usage of paylod
                     if len(payload_data) == 2:
                         # payload has correct structure
@@ -118,22 +118,22 @@ while True:
                         pl_message = payload_data[1]
                         timestamps = usertimestamplist.getList()
 
-                        print ("payload has correct structure:", pl_chat, pl_message)
+                        # debug_print (f"payload has correct structure: {pl_chat} {pl_message}", DEBUG)
 
                         if pl_chat in timestamps:
                             # payload-groupchat is correct
-                            print ("correct group")
+                            # debug_print ("correct group")
 
                             if sender_id in timestamps[pl_chat]:
                                 # sender is listed as new member in group
-                                print ("sender is listed as new member")
+                                # debug_print ("sender is listed as new member", DEBUG)
 
                                 welcome_message = userwelcomemessagelist.getList()
                                 welcome_message_id = str(welcome_message[pl_chat][sender_id])
 
                                 if pl_message == welcome_message_id:
                                     # sender has used his own welcome-message and can be authorized
-                                    print ("correct welcome_message, verify user")
+                                    # debug_print ("correct welcome_message, verify user", DEBUG)
                                     # welcome user
                                     bot.sendMessage(sender_id, "Willkommen in der Gang!\nHier geht's bald weiter mit einer Captcha. UUUUH, Spannend!")
                                     welcome_string = f"Willkommen in der Gruppe, {update.message.sender.first_name}!"
@@ -144,14 +144,14 @@ while True:
                                     userwelcomemessagelist.unregister (pl_chat, sender_id)
                                     # TODO: authorize user
                                 else:
-                                    print ("payload_message_id and listed id do not match -> wrong button:", pl_message, welcome_message_id)
+                                    # debug_print (f"payload_message_id and listed id do not match -> wrong button: {pl_message} {welcome_message_id}", DEBUG)
                                     # sender has used wrong button
                                     bot.sendMessage(update.message.chat.id, "Bitte nutze den Knopf unter deiner eigenen Willkommensnachricht.")
                             else:
                                 # check if user already in group
                                 chat_member = bot.getChatMember(pl_chat, sender_id)
                                 if chat_member:
-                                    print ("User already in group")
+                                    # debug_print ("User already in group", DEBUG)
                                     bot.sendMessage(update.message.chat.id, "Du bist schon in der Gruppe drin. Du brauchst dich nicht mehr zu verifizieren!")
                                 else:
                                     # unauthorized
