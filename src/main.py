@@ -117,12 +117,12 @@ while True:
                         pl_chat = payload_data[0]
                         pl_message = payload_data[1]
                         timestamps = usertimestamplist.getList()
-
+                        
                         # debug_print (f"payload has correct structure: {pl_chat} {pl_message}", DEBUG)
 
                         if pl_chat in timestamps:
                             # payload-groupchat is correct
-                            # debug_print ("correct group")
+                            # debug_print ("correct group", DEBUG)
 
                             if sender_id in timestamps[pl_chat]:
                                 # sender is listed as new member in group
@@ -148,7 +148,7 @@ while True:
                                     # sender has used wrong button
                                     bot.sendMessage(update.message.chat.id, "Bitte nutze den Knopf unter deiner eigenen Willkommensnachricht.")
                             else:
-                                # check if user already in group
+                                # check if sender already in group
                                 chat_member = bot.getChatMember(pl_chat, sender_id)
                                 if chat_member:
                                     # debug_print ("User already in group", DEBUG)
