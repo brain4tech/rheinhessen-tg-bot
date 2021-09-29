@@ -28,7 +28,7 @@ def newChatMember(chat_id, user_id, user_name, time):
     # TODO: restrict user
     usertimestamplist.register(chat_id, user_id, time)
     welcome_message = f"Willkommen im Chat, {user_name}!"
-    response = bot.sendMessage(chat_id, welcome_message)
+    response = bot.sendMessage(chat_id, welcome_message).json()
 
     # get message-id of this message and use it as payload for inlinekeyboard
     message_id = response['result']['message_id']
