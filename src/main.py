@@ -7,6 +7,7 @@
 import os
 from telegram_bot import TelegramBot, BotCommand, BotCommandList, InlineButton, ButtonList
 from time import sleep
+import traceback
 
 # libaries
 import path_setup as setup
@@ -22,13 +23,21 @@ DEBUG = True
 # --- FUNCTIONS ---
 
 def newChatMember(chat_id, user_id, user_name, time):
-    debug_print (f"New chat member {user_id} in {chat_id} at {time}", DEBUG)
+    
+    # save time of joining, send welcome message
     # TODO: restrict user
     usertimestamplist.register(chat_id, user_id, time)
-    welcome_message = f"Willkommen im Chat {user_name}! Bitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
-    button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", "join_button", f"https://t.me/rheinhessen_test_group_bot?start={chat_id}")]).toBotDict()
-    response = bot.sendMessage(chat_id, welcome_message, button_dict)
-    userwelcomemessagelist.register(chat_id, user_id, response['result']['message_id'])
+    welcome_message = f"Willkommen im Chat, {user_name}!"
+    response = bot.sendMessage(chat_id, welcome_message)
+
+    # get message-id of this message and use it as payload for inlinekeyboard
+    message_id = response['result']['message_id']
+    debug_print (f"New chat member {user_id} in {chat_id} at {time}. Id of welcome-message: {message_id}", DEBUG)
+    userwelcomemessagelist.register(chat_id, user_id, message_id)
+    welcome_message = f"Willkommen im Chat {user_name}!\nBitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
+    button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", url_ = f"https://t.me/rheinhessen_test_group_bot?start={chat_id}_{message_id}")]).toBotDict()
+    bot.editMessage(chat_id, message_id, welcome_message, button_dict)
+
     return response
 
 def createNeededFileStructure():
@@ -78,7 +87,7 @@ while True:
         userwelcomemessagelist.unregister(user[0], user[1])
 
     update, response = bot.poll()
-    # debug_print(response)
+    # debug_print(response, DEBUG)
     if not update:
         sleep(1)
         continue
@@ -93,14 +102,22 @@ while True:
         # if conversation initianted from a group, then payload of command matches group-id
         if "/start" in command:
             payload = command_params.replace(" ", "")
+            try:
+                payload_data = payload.split("_")   # 0: chat_id, 1: message_id
 
-            if payload in usertimestamplist:
-                bot.sendMessage(update.message.chat.id, "Willkommen in der Gang!")
-                usertimestamplist.unregister (payload, update.message.sender.id)
-                welcome_string = f"Willkommen in der Gruppe {update.message.sender.first_name}!"
-                bot.editMessage(payload, userwelcomemessagelist.getList[payload][update.message.sender.id], welcome_string)
-                userwelcomemessagelist.unregister (payload, userwelcomemessagelist.getList[payload][update.message.sender.id])
-                # TODO: update user permissions
+                if payload_data[0] in usertimestamplist:
+                    if payload_data[1] in usertimestamplist.getList()[payload_data[0]]:
+                        bot.sendMessage(update.message.chat.id, "Willkommen in der Gang! Es geht weiter!")
+                        usertimestamplist.unregister (payload_data[0], update.message.sender.id)
+                        welcome_string = f"Willkommen in der Gruppe, {update.message.sender.first_name}!"
+                        bot.editMessage(payload_data[0], userwelcomemessagelist.getList()[payload_data[0]][str(update.message.sender.id)], welcome_string, {})
+                        userwelcomemessagelist.unregister (payload_data[0], update.message.sender.id)
+                    else:
+                        bot.sendMessage(update.message.chat.id, "Du bist schon in der Gruppe drin!")
+                    
+                    # TODO: update user permissions
+            except Exception as e:
+                print (traceback.format_exc())
 
         # --- SIMULATION OF GROUP-JOINING ---
         if "/sim" in command:
@@ -112,8 +129,8 @@ while True:
                 user_id = command_params.replace("join", "").replace(" ", "")
 
                 #TODO: get user_name from group if user_param is given
-
-                newChatMember(update.message.chat.id, user_id if user_id else update.message.sender.id, bot.getChatMember(update.message.chat.id, user_id if user_id else update.message.sender.id).user.first_name, update.message.date)
+                chat_member = bot.getChatMember(update.message.chat.id, user_id if user_id else update.message.sender.id)
+                newChatMember(update.message.chat.id, user_id if user_id else update.message.sender.id, chat_member.user.first_name if chat_member else "None", update.message.date)
             
             """
             # simulation registration is not neccessary as it is integrated in "/sim join"
@@ -139,20 +156,24 @@ while True:
 
     if update.isnewChatMember():
         for new_member in update.message.new_chat_members:
-            newChatMember (update.message.chat.id, new_member.id, update.message.date, usertimestamplist)
+            newChatMember (update.message.chat.id, new_member.id, new_member.first_name, update.message.date)
     
     # security issue: check if correct user has pressed correct button for his message
     # temporarily store user with connected message-id and check with:
 
     if update.isCallback():
+        print ("Callback!")
         # TODO: see above
         callback_id = update.callback.id
         callback_message_id = update.callback.message.id
         callback_chat_id = update.callback.message.chat.id
         callback_user_id = update.callback.sender.id
 
+        print (usertimestamplist.getList(), callback_user_id, callback_message_id, callback_chat_id)
+
         if callback_user_id in usertimestamplist.getList()[callback_chat_id]:
             if userwelcomemessagelist.getList()[callback_chat_id][callback_user_id] != callback_message_id:
+                bot.sendMessage(callback_chat_id, f"Bitte drücke auf den Knopf unter deiner eigenen Willkommensnachricht, {update.callback.sender.first_name}")
                 bot.answerCallbackQuery(callback_id, "Bitte drücke auf den Knopf unter deiner eigenen Willkommensnachricht")
         else:
             bot.answerCallbackQuery(callback_id, "Du brauchst diesen Knopf nicht zu drücken da du schon in der Gruppe bist!")
