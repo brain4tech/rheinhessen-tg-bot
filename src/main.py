@@ -69,7 +69,7 @@ bot.deleteBotCommands()
 bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]")]))
 
 # create lists
-usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=10)
+usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=30)
 userwelcomemessagelist = UserIdList("user_welcome_message.json")
 
 print ("--- Started Rheinhessen TelegramBot ---")
@@ -102,20 +102,70 @@ while True:
         # if conversation initianted from a group, then payload of command matches group-id
         if "/start" in command:
             payload = command_params.replace(" ", "")
-            try:
-                payload_data = payload.split("_")   # 0: chat_id, 1: message_id
+            payload_data = payload.split("_")   # 0: chat_id, 1: message_id
 
-                if payload_data[0] in usertimestamplist:
-                    if payload_data[1] in usertimestamplist.getList()[payload_data[0]]:
-                        bot.sendMessage(update.message.chat.id, "Willkommen in der Gang! Es geht weiter!")
-                        usertimestamplist.unregister (payload_data[0], update.message.sender.id)
-                        welcome_string = f"Willkommen in der Gruppe, {update.message.sender.first_name}!"
-                        bot.editMessage(payload_data[0], userwelcomemessagelist.getList()[payload_data[0]][str(update.message.sender.id)], welcome_string, {})
-                        userwelcomemessagelist.unregister (payload_data[0], update.message.sender.id)
+            try:
+                
+                if payload:
+                    print ("payload exists:", payload_data)
+                    # usage of paylod
+                    if len(payload_data) == 2:
+                        # payload has correct structure
+
+                        sender_id = str(update.message.sender.id)
+
+                        pl_chat = payload_data[0]
+                        pl_message = payload_data[1]
+                        timestamps = usertimestamplist.getList()
+
+                        print ("payload has correct structure:", pl_chat, pl_message)
+
+                        if pl_chat in timestamps:
+                            # payload-groupchat is correct
+                            print ("correct group")
+
+                            if sender_id in timestamps[pl_chat]:
+                                # sender is listed as new member in group
+                                print ("sender is listed as new member")
+
+                                welcome_message = userwelcomemessagelist.getList()
+                                welcome_message_id = str(welcome_message[pl_chat][sender_id])
+
+                                if pl_message == welcome_message_id:
+                                    # sender has used his own welcome-message and can be authorized
+                                    print ("correct welcome_message, verify user")
+                                    # welcome user
+                                    bot.sendMessage(sender_id, "Willkommen in der Gang!\nHier geht's bald weiter mit einer Captcha. UUUUH, Spannend!")
+                                    welcome_string = f"Willkommen in der Gruppe, {update.message.sender.first_name}!"
+                                    bot.editMessage(pl_chat, welcome_message_id, welcome_string, {})
+
+                                    #unregister user from lists
+                                    usertimestamplist.unregister(pl_chat, sender_id)
+                                    userwelcomemessagelist.unregister (pl_chat, sender_id)
+                                    # TODO: authorize user
+                                else:
+                                    print ("payload_message_id and listed id do not match -> wrong button:", pl_message, welcome_message_id)
+                                    # sender has used wrong button
+                                    bot.sendMessage(update.message.chat.id, "Bitte nutze den Knopf unter deiner eigenen Willkommensnachricht.")
+                            else:
+                                # check if user already in group
+                                chat_member = bot.getChatMember(pl_chat, sender_id)
+                                if chat_member:
+                                    print ("User already in group")
+                                    bot.sendMessage(update.message.chat.id, "Du bist schon in der Gruppe drin. Du brauchst dich nicht mehr zu verifizieren!")
+                                else:
+                                    # unauthorized
+                                    pass
+                        else:
+                            # unauthorized
+                            pass
                     else:
-                        bot.sendMessage(update.message.chat.id, "Du bist schon in der Gruppe drin!")
-                    
-                    # TODO: update user permissions
+                        #unauthorized 
+                        pass
+                else:
+                    # unauthorized
+                    pass
+
             except Exception as e:
                 print (traceback.format_exc())
 
