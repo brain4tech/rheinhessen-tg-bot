@@ -78,8 +78,8 @@ while True:
 
     for user in usertimestamplist.getExpiredUsers():
         # kick user from chat
-        response_kick = bot.kickChatMember(user[0], user[1]).json()
-        debug_print (f"kicked user {user[1]} in {user[0]}: [{response_kick[list(response_kick)[-1]]}]", DEBUG)
+        response_ban, _ = bot.kickChatMember(user[0], user[1])
+        debug_print (f"kicked user {user[1]} in {user[0]}: [{response_ban.json()[list(response_ban.json())[-1]]}]", DEBUG)
         usertimestamplist.unregister(user[0], user[1])
 
         # delete welcome_message
