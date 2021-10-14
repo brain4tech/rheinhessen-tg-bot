@@ -59,6 +59,12 @@ def createNeededFileStructure():
 setup.enable()
 createNeededFileStructure()
 
+with open('bot_credentials/group_invite_link.txt') as file:
+    group_invite_link = file.read()
+
+with open('data/help_text.txt') as file:
+    help_text = file.read()
+
 with open('bot_credentials/chat_id.txt', 'r') as file:
     chat_id = file.read()
 
@@ -197,11 +203,15 @@ while True:
             # show help text and more
             # temporary there is nothing to show
 
+            help_start = f"Hi {update.message.sender.first_name}!"
+
+            back_button = ButtonList (InlineButton, [InlineButton("➔ Zurück zur Gruppe", url_ = group_invite_link)]).toBotDict()
+
             # delete message in group chat
             bot.deleteMessage(update.message.chat.id, update.message.id)
 
             # send help-statement in private chat
-            bot.sendMessage(update.message.sender.id, "Hi! Das ist die Hilfe. Aktuell ist hier noch nichts zu sehen.")
+            bot.sendMessage(update.message.sender.id, f"{help_start}\n{help_text.strip()}", back_button)
             
 
         continue
