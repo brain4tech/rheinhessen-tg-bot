@@ -66,7 +66,7 @@ with open('bot_credentials/token.txt', 'r') as file:
     bot = TelegramBot(file.read(), return_on_update_only=False)
     
 bot.deleteBotCommands()
-bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]")]))
+bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]"), BotCommand("help", "Erzeugt Hilfetext und weitere Infos")]))
 
 # create lists
 usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=30)
@@ -193,7 +193,19 @@ while True:
                 usertimestamplist.unregister(update.message.chat.id, update.message.sender.id)
             """
 
+        if "/help" in command:
+            # show help text and more
+            # temporary there is nothing to show
+
+            # delete message in group chat
+            bot.deleteMessage(update.message.chat.id, update.message.id)
+
+            # send help-statement in private chat
+            bot.sendMessage(update.message.sender.id, "Hi! Das ist die Hilfe. Aktuell ist hier noch nichts zu sehen.")
+            
+
         continue
+
 
     # --- REAL LIFE ACTION ---
 
