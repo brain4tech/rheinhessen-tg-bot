@@ -55,6 +55,8 @@ def createNeededFileStructure():
     
     # data
     os.makedirs("data", exist_ok = True)
+    if not os.path.exists("data/help_text.txt"):
+        open("data/help_text.txt", "w+").close()
 
 # --- START OF SCRIPT ---
 
@@ -64,7 +66,7 @@ setup.enable()
 createNeededFileStructure()
 
 with open('bot_credentials/group_invite_link.txt') as file:
-    group_invite_link = file.read()
+    group_invite_link = file.read().strip()
 
 with open('data/help_text.txt') as file:
     help_text = file.read()
