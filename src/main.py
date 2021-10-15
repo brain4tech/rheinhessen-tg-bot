@@ -5,7 +5,7 @@
 # --- IMPORT STATEMENTS ---
 # packages
 import os
-from telegram_bot import TelegramBot, BotCommand, BotCommandList, InlineButton, ButtonList
+from telegram_bot import TelegramBot, BotCommand, BotCommandList, InlineButton, ButtonList, ChatPermissions
 from time import sleep
 import traceback
 
@@ -27,6 +27,7 @@ def newChatMember(chat_id, user_id, user_name, time):
     # save time of joining, send welcome message
     # TODO: restrict user
     usertimestamplist.register(chat_id, user_id, time)
+    print(bot.restrictChatMember(update.message.chat.id, final_user_id, no_chat_permissions).json())
     welcome_message = f"Willkommen im Chat, {user_name}!"
     response = bot.sendMessage(chat_id, welcome_message).json()
 
@@ -48,6 +49,9 @@ def createNeededFileStructure():
     
     if not os.path.exists("bot_credentials/chat_id.txt"):
         open("bot_credentials/chat_id.txt", "w+").close()
+    
+    if not os.path.exists("bot_credentials/group_invite_link.txt"):
+        open("bot_credentials/group_invite_link.txt", "w+").close()
     
     # data
     os.makedirs("data", exist_ok = True)
@@ -73,6 +77,9 @@ with open('bot_credentials/token.txt', 'r') as file:
     
 bot.deleteBotCommands()
 bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]"), BotCommand("help", "Erzeugt Hilfetext und weitere Infos")]))
+
+default_chat_permissions = ChatPermissions(True, True, False, True, True, False, False, False)
+no_chat_permissions = ChatPermissions()
 
 # create lists
 usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=30)
@@ -148,6 +155,8 @@ while True:
                                     #unregister user from lists
                                     usertimestamplist.unregister(pl_chat, sender_id)
                                     userwelcomemessagelist.unregister (pl_chat, sender_id)
+
+                                    print(bot.restrictChatMember(pl_chat, sender_id, default_chat_permissions).json())
                                     # TODO: authorize user
                                 else:
                                     # debug_print (f"payload_message_id and listed id do not match -> wrong button: {pl_message} {welcome_message_id}", DEBUG)
@@ -184,9 +193,11 @@ while True:
 
                 user_id = command_params.replace("join", "").replace(" ", "")
 
+                final_user_id = user_id if user_id else update.message.sender.id
+
                 #TODO: get user_name from group if user_param is given
-                chat_member = bot.getChatMember(update.message.chat.id, user_id if user_id else update.message.sender.id)
-                newChatMember(update.message.chat.id, user_id if user_id else update.message.sender.id, chat_member.user.first_name if chat_member else "None", update.message.date)
+                chat_member = bot.getChatMember(update.message.chat.id, final_user_id)
+                newChatMember(update.message.chat.id, final_user_id, chat_member.user.first_name if chat_member else "Unbekannter", update.message.date)
             
             """
             # simulation registration is not neccessary as it is integrated in "/sim join"
