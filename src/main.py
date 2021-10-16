@@ -38,7 +38,6 @@ def newChatMember(chat_id, user_id, user_name, time):
     bot.editMessage(chat_id, message_id, welcome_message, button_dict)
 
     response_restrict = bot.restrictChatMember(update.message.chat.id, user_id, no_chat_permissions).json()
-    print (response_restrict)
     debug_print(f"\tRestricted new member <{user_id}>: [{response_restrict['description' if 'description' in response_restrict else 'result']}]", DEBUG)
 
     return response
@@ -179,8 +178,7 @@ while True:
                                     usertimestamplist.unregister(pl_chat, sender_id)
                                     userwelcomemessagelist.unregister (pl_chat, sender_id)
                                     
-                                    response_unrestrict = bot.restrictChatMember(update.message.chat.id, user_id, default_chat_permissions).json()
-                                    print (response_unrestrict)
+                                    response_unrestrict = bot.restrictChatMember(pl_chat, sender_id, default_chat_permissions).json()
                                     debug_print(f"\tGave default permission to <{sender_id}>: [{response_unrestrict['description' if 'description' in response_unrestrict else 'result']}]", DEBUG)
 
                                 else:
