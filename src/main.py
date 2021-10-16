@@ -85,7 +85,7 @@ default_chat_permissions = ChatPermissions(True, True, False, True, True, False,
 no_chat_permissions = ChatPermissions()
 
 # create lists
-usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=10)
+usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=30)
 userwelcomemessagelist = UserIdList("user_welcome_message.json")
 triggersimlist = UserIdList("sim_trigger_message.json")
 
@@ -179,6 +179,7 @@ while True:
                                     userwelcomemessagelist.unregister (pl_chat, sender_id)
                                     
                                     response_unrestrict = bot.restrictChatMember(update.message.chat.id, user_id, default_chat_permissions).json()
+                                    print (response_unrestrict)
                                     debug_print(f"\tGave default permission to <{sender_id}>: [{response_unrestrict['description' if 'description' in response_unrestrict else 'response']}]", DEBUG)
 
                                 else:
