@@ -25,9 +25,7 @@ DEBUG = True
 def newChatMember(chat_id, user_id, user_name, time):
     
     # save time of joining, send welcome message
-    # TODO: restrict user
     usertimestamplist.register(chat_id, user_id, time)
-    print(bot.restrictChatMember(update.message.chat.id, final_user_id, no_chat_permissions).json())
     welcome_message = f"Willkommen im Chat, {user_name}!"
     response = bot.sendMessage(chat_id, welcome_message).json()
 
@@ -38,6 +36,9 @@ def newChatMember(chat_id, user_id, user_name, time):
     welcome_message = f"Willkommen im Chat {user_name}!\nBitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
     button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", url_ = f"https://t.me/rheinhessen_test_group_bot?start={chat_id}_{message_id}")]).toBotDict()
     bot.editMessage(chat_id, message_id, welcome_message, button_dict)
+
+    response_restrict = bot.restrictChatMember(update.message.chat.id, user_id, no_chat_permissions).json()
+    debug_print(f"\tRestricted new member <{user_id}>: [{response_restrict['description' if 'description' in response_restrict else 'response']}]", DEBUG)
 
     return response
 
@@ -69,7 +70,7 @@ with open('bot_credentials/group_invite_link.txt') as file:
     group_invite_link = file.read().strip()
 
 with open('data/help_text.txt') as file:
-    help_text = file.read()
+    help_text = file.read().strip()
 
 with open('bot_credentials/chat_id.txt', 'r') as file:
     chat_id = file.read()
@@ -157,9 +158,10 @@ while True:
                                     #unregister user from lists
                                     usertimestamplist.unregister(pl_chat, sender_id)
                                     userwelcomemessagelist.unregister (pl_chat, sender_id)
+                                    
+                                    response_unrestrict = bot.restrictChatMember(update.message.chat.id, user_id, default_chat_permissions).json()
+                                    debug_print(f"\tGave default permission to <{sender_id}>: [{response_unrestrict['description' if 'description' in response_unrestrict else 'response']}]", DEBUG)
 
-                                    print(bot.restrictChatMember(pl_chat, sender_id, default_chat_permissions).json())
-                                    # TODO: authorize user
                                 else:
                                     # debug_print (f"payload_message_id and listed id do not match -> wrong button: {pl_message} {welcome_message_id}", DEBUG)
                                     # sender has used wrong button
