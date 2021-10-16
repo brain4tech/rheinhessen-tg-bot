@@ -85,22 +85,33 @@ default_chat_permissions = ChatPermissions(True, True, False, True, True, False,
 no_chat_permissions = ChatPermissions()
 
 # create lists
-usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=30)
+usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_=10)
 userwelcomemessagelist = UserIdList("user_welcome_message.json")
+triggersimlist = UserIdList("sim_trigger_message.json")
 
 print ("--- Started Rheinhessen TelegramBot ---")
 
 while True:
 
     for user in usertimestamplist.getExpiredUsers():
+        chat_id, user_id = user[0], user[1]
         # kick user from chat
-        response_ban, response_unban = bot.kickChatMember(user[0], user[1])
-        debug_print (f"kicked user {user[1]} in {user[0]}: [{response_ban.json()[list(response_ban.json())[-1]]}, {response_unban.json()[list(response_unban.json())[-1]]}]", DEBUG)
-        usertimestamplist.unregister(user[0], user[1])
+        response_ban, response_unban = bot.kickChatMember(chat_id, user_id)
+        debug_print (f"kicked user {user_id} in {chat_id}: [{response_ban.json()[list(response_ban.json())[-1]]}, {response_unban.json()[list(response_unban.json())[-1]]}]", DEBUG)
+
+        # delete sim-command
+        simlist = triggersimlist.getList(chat_id)
+        if simlist:
+            if user_id in simlist:
+                bot.deleteMessage(chat_id, simlist[user_id])
+                triggersimlist.unregister(chat_id, user_id)
 
         # delete welcome_message
-        bot.deleteMessage(user[0], userwelcomemessagelist.getList()[user[0]][user[1]])
-        userwelcomemessagelist.unregister(user[0], user[1])
+        bot.deleteMessage(chat_id, userwelcomemessagelist.getList()[chat_id][user_id])
+        userwelcomemessagelist.unregister(chat_id, user_id)
+
+        # only unregister if everything was successfull
+        usertimestamplist.unregister(chat_id, user_id)
 
     update, response = bot.poll()
     # debug_print(response, DEBUG)
@@ -153,6 +164,14 @@ while True:
                                     # welcome user
                                     bot.sendMessage(sender_id, "Willkommen in der Gang!\nHier geht's bald weiter mit einer Captcha. UUUUH, Spannend!")
                                     welcome_string = f"Willkommen in der Gruppe, {update.message.sender.first_name}!"
+                        
+                                    # delete sim-command
+                                    simlist = triggersimlist.getList(pl_chat)
+                                    if simlist:
+                                        if sender_id in simlist:
+                                            bot.deleteMessage(pl_chat, simlist[sender_id])
+                                            triggersimlist.unregister(pl_chat, sender_id)
+                                    
                                     bot.editMessage(pl_chat, welcome_message_id, welcome_string, {})
 
                                     #unregister user from lists
@@ -199,7 +218,8 @@ while True:
 
                 final_user_id = user_id if user_id else update.message.sender.id
 
-                #TODO: get user_name from group if user_param is given
+                triggersimlist.register(update.message.chat.id, final_user_id, update.message.id)
+
                 chat_member = bot.getChatMember(update.message.chat.id, final_user_id)
                 newChatMember(update.message.chat.id, final_user_id, chat_member.user.first_name if chat_member else "Unbekannter", update.message.date)
             
