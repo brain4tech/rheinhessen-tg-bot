@@ -8,6 +8,7 @@ import os
 from telegram_bot import TelegramBot, BotCommand, BotCommandList, InlineButton, ButtonList, ChatPermissions
 from time import sleep
 import traceback
+from dotenv import load_dotenv
 
 # libaries
 import path_setup as setup
@@ -34,7 +35,7 @@ def newChatMember(chat_id, user_id, user_name, time):
     debug_print (f"New chat member {user_id} in {chat_id} at {time}. Id of welcome-message: {message_id}", DEBUG)
     userwelcomemessagelist.register(chat_id, user_id, message_id)
     welcome_message = f"Willkommen im Chat {user_name}!\nBitte drücke auf den untenstehenden Knopf um der Konversation beitreten zu können:"
-    button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", url_ = f"https://t.me/rheinhessen_test_group_bot?start={chat_id}_{message_id}")]).toBotDict()
+    button_dict = ButtonList (InlineButton, [InlineButton("Der Konversation beitreten", url_ = f"{tg_bot_link}?start={chat_id}_{message_id}")]).toBotDict()
     bot.editMessage(chat_id, message_id, welcome_message, button_dict)
 
     response_restrict = bot.restrictChatMember(update.message.chat.id, user_id, no_chat_permissions).json()
@@ -43,40 +44,20 @@ def newChatMember(chat_id, user_id, user_name, time):
     return response
 
 def createNeededFileStructure():
-    # credentials
-    os.makedirs("bot_credentials", exist_ok = True)
-    if not os.path.exists("bot_credentials/token.txt"):
-        open("bot_credentials/token.txt", "w+").close()
-    
-    if not os.path.exists("bot_credentials/chat_id.txt"):
-        open("bot_credentials/chat_id.txt", "w+").close()
-    
-    if not os.path.exists("bot_credentials/group_invite_link.txt"):
-        open("bot_credentials/group_invite_link.txt", "w+").close()
-    
-    # data
-    os.makedirs("data", exist_ok = True)
-    if not os.path.exists("data/help_text.txt"):
-        open("data/help_text.txt", "w+").close()
+    pass
 
 # --- START OF SCRIPT ---
-
-# TODO: create paths and files if not existent
-
 setup.enable()
 createNeededFileStructure()
 
-with open('bot_credentials/group_invite_link.txt') as file:
-    group_invite_link = file.read().strip()
+load_dotenv("credentials")
+group_invite_link = os.environ.get("GROUP_INVITE_LINK")
+tg_bot_link = os.environ.get("TG_BOT_LINK")
 
 with open('data/help_text.txt') as file:
     help_text = file.read().strip()
 
-with open('bot_credentials/chat_id.txt', 'r') as file:
-    chat_id = file.read()
-
-with open('bot_credentials/token.txt', 'r') as file:
-    bot = TelegramBot(file.read(), return_on_update_only=False)
+bot = TelegramBot(os.environ.get("BOT_TOKEN"), return_on_update_only=False)
     
 bot.deleteBotCommands()
 bot.setBotCommands(BotCommandList([BotCommand("sim", "Simulation einer Aktion [event] [parameter]"), BotCommand("help", "Erzeugt Hilfetext und weitere Infos")]))
@@ -239,7 +220,6 @@ while True:
             # temporary there is nothing to show
 
             help_start = f"Hi {update.message.sender.first_name}!"
-
             back_button = ButtonList (InlineButton, [InlineButton("➔ Zurück zur Gruppe", url_ = group_invite_link)]).toBotDict()
 
             # delete message in group chat
@@ -247,6 +227,11 @@ while True:
 
             # send help-statement in private chat
             bot.sendMessage(update.message.sender.id, f"{help_start}\n{help_text.strip()}", back_button)
+        
+        # added for testing purposes
+        if "/quit" in command:
+            # quit application
+            break
             
 
         continue
@@ -265,12 +250,8 @@ while True:
         for new_member in update.message.new_chat_members:
             newChatMember (update.message.chat.id, new_member.id, new_member.first_name, update.message.date)
     
-    # security issue: check if correct user has pressed correct button for his message
     # temporarily store user with connected message-id and check with:
-
     if update.isCallback():
-        print ("Callback!")
-        # TODO: see above
         callback_id = update.callback.id
         callback_message_id = update.callback.message.id
         callback_chat_id = update.callback.message.chat.id
@@ -289,4 +270,3 @@ while True:
     sleep(1)
 
 setup.disable()
-
