@@ -1,13 +1,6 @@
 
 # ignore __pycache__ directories
-**/__pycache__
-
-# ignore credentials
-bot_credentials/chat_id.txt
-bot_credentials/group_invite_link.txt
-bot_credentials/token.txt
+__pycache__
 
 # ignore sensitive data
-data
-
-dumping.txt
+credentials
