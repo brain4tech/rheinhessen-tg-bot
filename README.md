@@ -23,4 +23,5 @@ Source code for a Telegram Captcha-Bot, originally created for a Rheinhessen Tel
 * It is NOT RECOMMENDED to use this code in production, but you are absolutely allowed to get inspired by this repository
 
 Licence: MIT; use this repository as you like
+
 (c) 2022 Brain4Tech
