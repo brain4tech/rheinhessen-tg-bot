@@ -1,0 +1,2 @@
+This is a temporary help message.
+Change it in data/help_text.txt
