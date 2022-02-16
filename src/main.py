@@ -1,5 +1,5 @@
-# This is the main script of the main Telegrambot of the Rheinhessen Telegramgroup Initiative
-# Published on GitHub for transparency and showing progress
+# This is the main script of the main Telegrambot of the Captcha-Bot, originally created for a Rheinhessen Telegramgroup Initiative
+# Published on GitHub for transparency and progress-showing purposes
 # Author: (c) Brain4Tech
 
 # --- IMPORT STATEMENTS ---
@@ -70,7 +70,7 @@ usertimestamplist = UserIdTimestampList("user_id_timestamp.json", time_interval_
 userwelcomemessagelist = UserIdList("user_welcome_message.json")
 triggersimlist = UserIdList("sim_trigger_message.json")
 
-print ("--- Started Rheinhessen TelegramBot ---")
+print ("--- Started Captchabot ---")
 
 while True:
 
